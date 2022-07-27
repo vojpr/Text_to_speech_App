@@ -1,4 +1,4 @@
-# Text_to_speech_App
+# Text-to-Speech converter App
 App converting text to speech.<br>
 App lets user upload PDF file, convert it to mp3 file using PyPDF2 and pyttsx3, and download it using original file name.<br>
 GUI built with Tkinter and CustomTkinter.<br>
