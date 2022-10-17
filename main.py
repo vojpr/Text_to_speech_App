@@ -78,8 +78,8 @@ def download_converted():
     try:
         reader = PdfReader(pdf_file)
         number_of_pages = len(reader.pages)
-        for each in range(number_of_pages):
-            page = reader.pages[each]
+        for number in range(number_of_pages):
+            page = reader.pages[number]
             pdf_string += page.extract_text()
         # Convert string to mp3 (using threading so that Tk window doesn't exit the mainloop)
         threading.Thread(
