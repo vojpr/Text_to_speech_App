@@ -5,61 +5,11 @@ import pyttsx3
 from PyPDF2 import PdfReader
 import os
 import threading
-
-# Returns Downloads folder depending on operational system (Win or Mac)
-if os.name == 'nt':
-    import ctypes
-    from ctypes import windll, wintypes
-    from uuid import UUID
-
-    # ctypes GUID copied from MSDN sample code
-    class GUID(ctypes.Structure):
-        _fields_ = [
-            ("Data1", wintypes.DWORD),
-            ("Data2", wintypes.WORD),
-            ("Data3", wintypes.WORD),
-            ("Data4", wintypes.BYTE * 8)
-        ]
-
-        def __init__(self, uuidstr):
-            uuid = UUID(uuidstr)
-            ctypes.Structure.__init__(self)
-            self.Data1, self.Data2, self.Data3, \
-            self.Data4[0], self.Data4[1], rest = uuid.fields
-            for i in range(2, 8):
-                self.Data4[i] = rest >> (8 - i - 1) * 8 & 0xff
-
-    SHGetKnownFolderPath = windll.shell32.SHGetKnownFolderPath
-    SHGetKnownFolderPath.argtypes = [
-        ctypes.POINTER(GUID), wintypes.DWORD,
-        wintypes.HANDLE, ctypes.POINTER(ctypes.c_wchar_p)
-    ]
-
-    def _get_known_folder_path(uuidstr):
-        pathptr = ctypes.c_wchar_p()
-        guid = GUID(uuidstr)
-        if SHGetKnownFolderPath(ctypes.byref(guid), 0, 0, ctypes.byref(pathptr)):
-            raise ctypes.WinError()
-        return pathptr.value
-
-    FOLDERID_Download = '{374DE290-123F-4565-9164-39C4925E467B}'
-
-    def get_download_folder():
-        return _get_known_folder_path(FOLDERID_Download)
-else:
-    def get_download_folder():
-        home = os.path.expanduser("~")
-        return os.path.join(home, "Downloads")
-
-
-def run_pyttsx3():
-    engine = pyttsx3.init()
-    engine.setProperty('rate', 155)
-    engine.save_to_file(pdf_string, f"{get_download_folder()}/{name_without_filetype}.mp3")
-    engine.runAndWait()
+from downloads_folder_finder import get_download_folder
 
 
 def select_file():
+    """Opens filedialog and uploads selected PDF file"""
     global pdf_file, name_without_filetype
     # Load file
     filetypes = (("PDF files", '.pdf'), ("all files", "*.*"))
@@ -71,7 +21,16 @@ def select_file():
     text.configure(text=f"File selected:\n{name_with_filetype}", text_color="white")
 
 
-def download_converted():
+def run_pyttsx3():
+    """Converts string to mp3 file and saves it to downloads folder"""
+    engine = pyttsx3.init()
+    engine.setProperty('rate', 155)
+    engine.save_to_file(pdf_string, f"{get_download_folder()}/{name_without_filetype}.mp3")
+    engine.runAndWait()
+
+
+def download_converted_file():
+    """Converts uploaded PDF file to mp3 format and saves it to downloads folder"""
     global pdf_string
     # Get string from PDF
     pdf_string = ""
@@ -86,7 +45,7 @@ def download_converted():
             target=run_pyttsx3, daemon=True
         ).start()
         text.configure(text=f"{name_without_filetype}.mp3\ndownloaded", text_color="green")
-    except NameError:
+    except (NameError, FileNotFoundError):
         text.configure(text=f"File selected:\nnone", text_color="red")
 
 
@@ -105,7 +64,7 @@ text.place(relx=0.5, rely=0.2, anchor=tkinter.CENTER)
 upload_button = customtkinter.CTkButton(master=window, text="Upload PDF file", width=200, command=select_file)
 upload_button.place(relx=0.5, rely=0.65, anchor=tkinter.CENTER)
 convert_button = customtkinter.CTkButton(master=window, text="Convert to MP3 and download", width=200,
-                                         command=download_converted)
+                                         command=download_converted_file)
 convert_button.place(relx=0.5, rely=0.85, anchor=tkinter.CENTER)
 
 window.mainloop()
