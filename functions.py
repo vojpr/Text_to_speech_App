@@ -20,7 +20,7 @@ def select_file(text):
 
 
 def run_pyttsx3():
-    """Converts string to mp3 file and saves it to downloads folder"""
+    """Converts string to mp3 file and saves it to downloads folder """
     engine = pyttsx3.init()
     engine.setProperty('rate', 155)
     engine.save_to_file(pdf_string, f"{get_download_folder()}/{name_without_filetype}.mp3")
